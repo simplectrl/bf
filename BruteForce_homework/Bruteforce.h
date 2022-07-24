@@ -80,11 +80,10 @@ namespace Bruteforce
     {   
         do 
         {
-            std::cout << "\r  checked passpords: " << passwordsCounter;
-            std::this_thread::sleep_for(30ms);
+            std::printf("\r  checked passpords: %d", static_cast<long>(passwordsCounter));
+            std::this_thread::sleep_for(100ms);
 
         } while ( threadsCounter > 0 );
-
         std::cout << std::endl;                      
     }
 

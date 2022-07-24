@@ -6,31 +6,31 @@
 
 using uchar = unsigned char;
 
-static const std::vector<uchar> charset
-{ '0','1','2','3','4','5','6','7','8','9',
-
- 'a','b','c','d','e','f','g','h','i','j',
- 'k','l','m','n','o','p','q','r','s','t',
- 'u','v','w','x','y','z' };
-
 //static const std::vector<uchar> charset
 //{ '0','1','2','3','4','5','6','7','8','9',
 //
-//  'A','B','C','D','E','F','G','H','I','J',
-//  'K','L','M','N','O','P','Q','R','S','T',
-//  'U','V','W','X','Y','Z',
-//
-//  'a','b','c','d','e','f','g','h','i','j',
-//  'k','l','m','n','o','p','q','r','s','t',
-//  'u','v','w','x','y','z' };
+// 'a','b','c','d','e','f','g','h','i','j',
+// 'k','l','m','n','o','p','q','r','s','t',
+// 'u','v','w','x','y','z' };
+
+static const std::vector<uchar> charset
+{ '0','1','2','3','4','5','6','7','8','9',
+
+  'A','B','C','D','E','F','G','H','I','J',
+  'K','L','M','N','O','P','Q','R','S','T',
+  'U','V','W','X','Y','Z',
+
+  'a','b','c','d','e','f','g','h','i','j',
+  'k','l','m','n','o','p','q','r','s','t',
+  'u','v','w','x','y','z' };
 
 
 class BlackBox
 {
 public:
     BlackBox(const int maxLen,
-             const std::vector<uchar> preset = {},
-             const std::vector<uchar> until = {})
+             const std::vector<uchar>& preset = {},
+             const std::vector<uchar>& until = {})
 
         : m_arrsize   (charset.size()),
           m_sliderBox (maxLen, Slider(m_arrsize)),
@@ -116,7 +116,7 @@ private:
         const int m_trigger;
     };
 
-    void presetSliderBox(const std::vector<uchar> preset)
+    void presetSliderBox(const std::vector<uchar>& preset)
     {
         if (preset.empty())
         {
@@ -138,7 +138,7 @@ private:
         }
     }
 
-    void setLimit(const std::vector<uchar> until)
+    void setLimit(const std::vector<uchar>& until)
     {
         if (until.empty())
         {
