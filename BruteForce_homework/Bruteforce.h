@@ -4,16 +4,19 @@
 
 namespace Bruteforce
 {
-    static std::mutex mutex;
+    struct WorkData
+    {
+        std::mutex mutex;
 
-    static std::atomic<bool>    stopCracking;
-    static std::atomic<int>     threadsCounter   = 0;
-    static std::atomic<long>    passwordsCounter = 0;
-    
-    static bool isPassFound = false;
+        std::atomic<bool>    stopCracking;
+        std::atomic<int>     threadsCounter;
+        std::atomic<long>    passwordsCounter;
 
-    std::string foundedPassword;
-    std::string outputFile;
+        bool isPassFound;
+
+        std::string foundedPassword;
+        std::string outputFile;
+    };
 
     class AntiZombie
     {
@@ -33,9 +36,9 @@ namespace Bruteforce
     };
 
     void Worker(BlackBox bb, const std::vector<uchar>& chipText,
-        const std::vector<uchar>& targetHash, const fs::path& outPath)
+        const std::vector<uchar>& targetHash, const fs::path& outPath, WorkData* wd)
     {
-        ++threadsCounter;
+        ++wd->threadsCounter;
 
         uchar key[EVP_MAX_KEY_LENGTH];
         uchar iv[EVP_MAX_IV_LENGTH];
@@ -44,14 +47,14 @@ namespace Bruteforce
         std::vector<uchar> plainText;
         std::vector<uchar> newHash;
 
-        while (!stopCracking)
+        while (!wd->stopCracking)
         {
             pass = bb.next();
             if (pass.empty())
             {
                 break;
             }
-            passwordsCounter++;
+            wd->passwordsCounter++;
 
             utl::PasswordToKeyT(pass, key, iv);
             if (!DecryptAesT(chipText, plainText, key, iv))
@@ -62,28 +65,28 @@ namespace Bruteforce
 
             if (utl::IsHashesEqual(targetHash, newHash))
             {     
-                std::lock_guard lock(mutex);
+                std::lock_guard lock(wd->mutex);
 
-                stopCracking = true;
-                isPassFound = true;
-                foundedPassword = pass;
+                wd->stopCracking = true;
+                wd->isPassFound = true;
+                wd->foundedPassword = pass;
 
-                outputFile = outPath.string() + "\\pass_" + foundedPassword;
-                utl::WriteFile(outputFile, plainText);
+                wd->outputFile = outPath.string() + "\\pass_" + wd->foundedPassword;
+                utl::WriteFile(wd->outputFile, plainText);
             }
         }
 
-        --threadsCounter;
+        --wd->threadsCounter;
     };
 
-    void DisplayProgress()
+    void DisplayProgress(WorkData* wd)
     {   
         do 
         {
-            std::printf("\r  checked passpords: %d", static_cast<long>(passwordsCounter));
+            std::printf("\r  checked passpords: %d", static_cast<long>(wd->passwordsCounter));
             std::this_thread::sleep_for(100ms);
 
-        } while ( threadsCounter > 0 );
+        } while (wd->threadsCounter > 0 );
         std::cout << std::endl;                      
     }
 
@@ -108,20 +111,26 @@ namespace Bruteforce
         std::cout << "=======================================================\n"
             << "bruteforce started\n";
 
-        AntiZombie zombieKiller(&stopCracking);
+        struct WorkData workData;
+        workData.stopCracking     = false;
+        workData.threadsCounter   = 0;
+        workData.passwordsCounter = 0;
+        workData.isPassFound      = false;
+
+        AntiZombie zombieKiller(&workData.stopCracking);
         auto begin = std::chrono::high_resolution_clock::now();
 
-        std::thread(Worker, BlackBox(4, {}, { '9','0','0','0' }),                  chipherText, targetHash, outPath).detach();
-        std::thread(Worker, BlackBox(4, { 'a','0','0','0' }, { 'j','0','0','0' }), chipherText, targetHash, outPath).detach();
-        std::thread(Worker, BlackBox(4, { 'j','0','0','0' }, { 't','0','0','0' }), chipherText, targetHash, outPath).detach();
-        std::thread(Worker, BlackBox(4, { 't','0','0','0' }, {}),                  chipherText, targetHash, outPath).detach();
-
-        std::thread(DisplayProgress).join();
+        std::thread([&]() {Worker(BlackBox(4, {}, { '9','0','0','0' }), chipherText, targetHash, outPath, &workData); }).detach();
+        std::thread([&]() {Worker(BlackBox(4, { 'a','0','0','0' }, { 'j','0','0','0' }), chipherText, targetHash, outPath, &workData); }).detach();
+        std::thread([&]() {Worker(BlackBox(4, { 'j','0','0','0' }, { 't','0','0','0' }), chipherText, targetHash, outPath, &workData); }).detach();
+        std::thread([&]() {Worker(BlackBox(4, { 't','0','0','0' }, {}), chipherText, targetHash, outPath, &workData); }).detach();
+        
+        std::thread([&workData]() {DisplayProgress(&workData); }).join();
             
-        if (isPassFound)
+        if (workData.isPassFound)
         {
-            std::cout << "  pass found -> " << foundedPassword << "\n"
-                << "  check output at: " << outputFile << "\n";            
+            std::cout << "  pass found -> " << workData.foundedPassword << "\n"
+                << "  check output at: " << workData.outputFile << "\n";
         }
         else
         {

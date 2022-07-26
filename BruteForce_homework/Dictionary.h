@@ -3,8 +3,11 @@
 
 namespace Dictionary
 {   
-    static bool              isPassFound = false;
-    static std::atomic<long> passwordsCounter = 0;
+    struct WorkData
+    {
+        bool              isPassFound;
+        std::atomic<long> passwordsCounter;
+    };
 
     bool IsDictionaryHasRightExtension(const fs::path& dictionaryPath)
     {
@@ -12,7 +15,7 @@ namespace Dictionary
     }
 
     void Worker(const fs::path& dictionaryPath, const std::vector<uchar>& chipText,
-        const std::vector<uchar>& targetHash, const fs::path& outPath)
+        const std::vector<uchar>& targetHash, const fs::path& outPath, WorkData* wd)
     {   
         uchar key[EVP_MAX_KEY_LENGTH];
         uchar iv[EVP_MAX_IV_LENGTH];
@@ -27,7 +30,7 @@ namespace Dictionary
             {
                 break;
             }
-            ++passwordsCounter;
+            ++wd->passwordsCounter;
 
             utl::PasswordToKeyT(pass, key, iv);
             if (!DecryptAesT(chipText, plainText, key, iv))
@@ -38,9 +41,9 @@ namespace Dictionary
 
             if (utl::IsHashesEqual(targetHash, newHash))
             {  
-                isPassFound = true;
+                wd->isPassFound = true;
                 std::cout << "  pass found -> " << pass << "\n"
-                          << "  checked passpords: " << passwordsCounter << "\n";
+                          << "  checked passpords: " << wd->passwordsCounter << "\n";
 
                 std::string outFileName(outPath.string() + "\\pass_" + pass);
                 utl::WriteFile(outFileName, plainText);
@@ -59,6 +62,10 @@ namespace Dictionary
             return;
         }
 
+        WorkData workData;
+        workData.isPassFound = false;
+        workData.passwordsCounter = 0;
+
         fs::path outPath = fs::current_path().append("dctnry-aes-out");
         utl::CreatePathIfNotExists(outPath);
 
@@ -75,7 +82,7 @@ namespace Dictionary
 
         for (const auto& dir_entry : fs::directory_iterator{ "dictionary" })
         {
-            if (isPassFound) break;
+            if (workData.isPassFound) break;
 
             if (IsDictionaryHasRightExtension(dir_entry.path()))
             {
@@ -83,7 +90,7 @@ namespace Dictionary
                 return;
             }
             std::cout << "  current dictionary: " << dir_entry.path().filename() << '\n';
-            Worker(dir_entry.path(), chipherText, targetHash, outPath);
+            Worker(dir_entry.path(), chipherText, targetHash, outPath, &workData);
 
         }
 
