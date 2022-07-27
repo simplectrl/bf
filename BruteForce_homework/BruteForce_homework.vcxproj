@@ -162,6 +162,9 @@
     <Text Include="Description.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="BlackBox.cpp" />
+    <ClCompile Include="Bruteforce.cpp" />
+    <ClCompile Include="Dictionary.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>

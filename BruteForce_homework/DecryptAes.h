@@ -2,7 +2,7 @@
 #include "stdafx.h"
 #include "Utils.h"
 
-bool DecryptAesT(const std::vector<uchar> in, std::vector<uchar>& out, uchar* key, uchar* iv)
+inline bool DecryptAesT(const std::vector<uchar> in, std::vector<uchar>& out, uchar* key, uchar* iv)
 {
     utl::CTX ctx;
     if (!EVP_DecryptInit_ex(ctx.get(), EVP_aes_128_cbc(), NULL, key, iv))

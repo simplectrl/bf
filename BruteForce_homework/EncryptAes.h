@@ -1,13 +1,10 @@
 #pragma once
 #include "stdafx.h"
-#include "Inventory.h"
+#include "Utils.h"
 
-uchar key [EVP_MAX_KEY_LENGTH];
-uchar iv  [EVP_MAX_IV_LENGTH];
-
-bool EncryptAes(const std::vector<uchar> plainText, std::vector<uchar>& chipherText)
+inline bool EncryptAes(const std::vector<uchar> plainText, std::vector<uchar>& chipherText, uchar* key, uchar* iv)
 {
-    CTX ctx;
+    utl::CTX ctx;
     if (!EVP_EncryptInit_ex(ctx.get(), EVP_aes_128_cbc(), NULL, key, iv))
     {
         return false;
@@ -30,19 +27,21 @@ bool EncryptAes(const std::vector<uchar> plainText, std::vector<uchar>& chipherT
     return true;
 }
 
-
-void Encrypt(const std::string& inFilePath, const std::string& outFilePath)
+inline void Encrypt(const std::string& inFilePath, const std::string& outFilePath)
 {
     std::vector<uchar> plainText;
-    ReadFile(inFilePath, plainText);
+    utl::ReadFile(inFilePath, plainText);
 
     std::vector<uchar> hash;
-    CalculateHash(plainText, hash);
+    utl::CalculateHash(plainText, hash);
+
+    uchar key[EVP_MAX_KEY_LENGTH];
+    uchar iv[EVP_MAX_IV_LENGTH];
 
     std::vector<uchar> chipherText;
-    EncryptAes(plainText, chipherText);
+    EncryptAes(plainText, chipherText, key, iv);
 
-    WriteFile(outFilePath, chipherText);
+    utl::WriteFile(outFilePath, chipherText);
 
-    AppendToFile(outFilePath, hash);
+    utl::AppendToFile(outFilePath, hash);
 }

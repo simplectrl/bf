@@ -2,7 +2,7 @@
 #include <cwctype>
 #include "stdafx.h"
 
-int isValidDataA(std::vector<uchar>& data)
+inline int isValidDataA(std::vector<uchar>& data)
 {
     unsigned int i, trigger;
     unsigned int bad = 0;
@@ -25,7 +25,7 @@ int isValidDataA(std::vector<uchar>& data)
 }
 
 
-bool isValidDataW(std::vector<uchar>& data)
+inline bool isValidDataW(std::vector<uchar>& data)
 {
     unsigned int trigger;
     unsigned int bad = 0;
@@ -48,7 +48,7 @@ bool isValidDataW(std::vector<uchar>& data)
     return true;
 }
 
-int isValidDataAK(std::vector<uchar>& data)
+inline int isValidDataAK(std::vector<uchar>& data)
 {
     unsigned int i, trigger;
     unsigned char c;

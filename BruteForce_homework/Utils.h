@@ -3,7 +3,7 @@
 
 namespace utl
 {
-    bool ReadFile(const std::string& filePath, std::vector<uchar>& buf)
+    inline bool ReadFile(const std::string& filePath, std::vector<uchar>& buf)
     {
         std::basic_fstream<uchar> fileStream(filePath, std::ios::binary | std::fstream::in);
         if (!fileStream.is_open())
@@ -16,19 +16,19 @@ namespace utl
         return true;
     }
 
-    void WriteFile(const std::string& filePath, const std::vector<uchar>& buf)
+    inline void WriteFile(const std::string& filePath, const std::vector<uchar>& buf)
     {
         std::basic_ofstream<uchar> fileStream(filePath, std::ios::binary);
         fileStream.write(buf.data(), buf.size());
     }
 
-    void AppendToFile(const std::string& filePath, const std::vector<uchar>& buf)
+    inline void AppendToFile(const std::string& filePath, const std::vector<uchar>& buf)
     {
         std::basic_ofstream<uchar> fileStream(filePath, std::ios::binary | std::ios::app);
         fileStream.write(buf.data(), buf.size());
     }
 
-    bool PasswordToKeyT(std::string& password, uchar* key, uchar* iv)
+    inline bool PasswordToKeyT(std::string& password, uchar* key, uchar* iv)
     {
         const uchar* salt = nullptr;
         if (!EVP_BytesToKey(EVP_aes_128_cbc(), EVP_md5(), salt,
@@ -41,7 +41,7 @@ namespace utl
         return true;
     }
 
-    void CalculateHash(const std::vector<uchar>& data, std::vector<uchar>& hash)
+    inline void CalculateHash(const std::vector<uchar>& data, std::vector<uchar>& hash)
     {
         std::vector<uchar> hashTmp(SHA256_DIGEST_LENGTH);
 
@@ -53,17 +53,17 @@ namespace utl
         hash.swap(hashTmp);
     }
 
-    std::vector<uchar> GetAppendedSHA256Hash(const std::vector<uchar>& data)
+    inline std::vector<uchar> GetAppendedSHA256Hash(const std::vector<uchar>& data)
     {
         return std::vector<uchar>(data.end() - SHA256_DIGEST_LENGTH, data.end());
     }
 
-    void RemoveAppendedSHA256Hash(std::vector<uchar>& data)
+    inline void RemoveAppendedSHA256Hash(std::vector<uchar>& data)
     {
         data.erase(data.end() - SHA256_DIGEST_LENGTH, data.end());
     }
 
-    void CreatePathIfNotExists(const fs::path& path)
+    inline void CreatePathIfNotExists(const fs::path& path)
     {
         if (!fs::exists(path))
         {
@@ -71,12 +71,12 @@ namespace utl
         }
     }
 
-    bool IsReularFile(const fs::path& filePath)
+    inline bool IsReularFile(const fs::path& filePath)
     {
         return (fs::exists(filePath) && fs::is_regular_file(filePath));
     }
 
-    bool IsHashesEqual(const std::vector<uchar>& l, const std::vector<uchar>& r)
+    inline bool IsHashesEqual(const std::vector<uchar>& l, const std::vector<uchar>& r)
     {
         return std::equal(l.begin(), l.end(), r.begin(), r.end());
     }

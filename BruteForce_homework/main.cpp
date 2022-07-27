@@ -1,9 +1,11 @@
 #include "Bruteforce.h"
 #include "Dictionary.h"
 
-void PrintUsage(const char* agr_0)
+#define DEBUG
+
+void PrintUsage(char** argv)
 {
-    std::cout << "Usage: " << agr_0 << " [path_to_chipher_aes_file]\n"
+    std::cout << "Usage: " << argv[0] << " [path_to_chipher_aes_file]\n"
         << "  options:  -d ... use dictionary\n";
 }
 
@@ -11,23 +13,28 @@ int main(int argc, char** argv)
 {
 #if defined DEBUG
 
-    Bruteforce::CrackFile ("chipher_text_brute_force");
-    Dictionary::CrackFile ("chipher_text_brute_force");
+    Bruteforce bruteforceCracker;
+    bruteforceCracker.CrackFile("chipher_text_brute_force");
+
+    Dictionary dictionaryCracker; 
+    dictionaryCracker.CrackFile("chipher_text_brute_force");
 
 #else    
     if (argc == 2)
     {
-        Bruteforce::CrackFile(argv[1]);
+        Bruteforce bruteforceCracker;
+        bruteforceCracker.CrackFile(argv[1]);
         system("pause");
     }
     else if (argc == 3 && !strcmp(argv[2], "-d"))
     {   
-        Dictionary::CrackFile(argv[1]);
+        Dictionary dictionaryCracker;
+        dictionaryCracker.CrackFile(argv[1]);
         system("pause");
     }
     else
     {
-        PrintUsage(argv[0]);
+        PrintUsage(argv);
     }
 #endif
     return 0;
